@@ -1,0 +1,7 @@
+Q1:
+Physical Core Saturation & No SMT: The Apple M1 processor features exactly 8 physical CPU cores without Hyper-Threading/SMT. Allocating 16 native OS threads oversubscribes the physical hardware cores, forcing the OS kernel to continuously context-switch threads. Context switching introduces instruction pipeline stalls, register saving overhead, and queue delays rather than true concurrent hardware execution.
+Heterogeneous Architecture (P-Cores vs E-Cores): The M1 chip consists of 4 high-performance Firestorm cores and 4 energy-efficient Icestorm cores. The E-cores operate at lower clock frequencies and narrower instruction pipelines. Scaling beyond 4-8 threads relies heavily on the slower E-cores, leading to sub-linear performance gains and rapidly diminishing efficiency
+
+Q2:
+Memory Bus & Interconnect Contention: Atomic operations (such as AtomicLong.incrementAndGet()) force hardware-level cache coherency protocols (MESI/MOESI) to acquire bus locks and exclusivity over the shared memory address
+Cache Line Ping-Ponging & Pipeline Stalls: When 4 cores write concurrently to the exact same cache line, an Invalidation Message is continuously broadcast across the interconnect bus. This forces the L1 cache lines of competing cores into the Invalid (I) state, causing repeated L1 cache misses and forcing CPU pipelines to stall for up to 95% of their cycles waiting for cache line ownership. In contrast, the single-threaded loop executes entirely within local CPU registers and L1 cache with zero bus locking overhead.
